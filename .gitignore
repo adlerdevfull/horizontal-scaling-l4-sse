@@ -1,0 +1,26 @@
+/vendor/
+.env
+/bootstrap/cache/*.php
+.phpunit.result.cache
+coverage/
+
+
+# portfolio publish safeguards
+.env
+.env.*
+!.env.example
+/vendor/
+/node_modules/
+frontend/node_modules/
+**/node_modules/
+/var/
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/framework/cache/data/*
+/bootstrap/cache/*.php
+config/jwt/*.pem
+*.log
+.phpunit.result.cache
+.phpunit.cache/
+coverage/
+.DS_Store
