@@ -1,0 +1,116 @@
+services:
+  # ============================================
+  # LOAD BALANCER - NGINX Layer 4 (TCP stream)
+  # ============================================
+  lb:
+    image: nginx:alpine
+    ports:
+      - "8140:80"
+      - "8101:8001" # SSE dedicated port
+    volumes:
+      - ./docker/lb/nginx-l4.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app1
+      - app2
+      - app3
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ============================================
+  # 3 APP REPLICAS (identical)
+  # ============================================
+  app1:
+    build: { context: ., dockerfile: docker/app/Dockerfile, target: development }
+    volumes: [".:/var/www/html"]
+    environment: &app-env
+      APP_ENV: local
+      APP_INSTANCE: app1
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_DATABASE: lb_platform
+      DB_USERNAME: app
+      DB_PASSWORD: secret
+      REDIS_HOST: redis
+      CACHE_DRIVER: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    networks:
+      - app-network
+
+  app2:
+    build: { context: ., dockerfile: docker/app/Dockerfile, target: development }
+    volumes: [".:/var/www/html"]
+    environment:
+      <<: *app-env
+      APP_INSTANCE: app2
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    networks:
+      - app-network
+
+  app3:
+    build: { context: ., dockerfile: docker/app/Dockerfile, target: development }
+    volumes: [".:/var/www/html"]
+    environment:
+      <<: *app-env
+      APP_INSTANCE: app3
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    networks:
+      - app-network
+
+  # ============================================
+  # SHARED STATE
+  # ============================================
+  postgres:
+    image: postgres:16-alpine
+    environment: { POSTGRES_DB: lb_platform, POSTGRES_USER: app, POSTGRES_PASSWORD: secret }
+    ports: ["5432:5432"]
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U app -d lb_platform"], interval: 5s, timeout: 5s, retries: 5 }
+    networks: [app-network]
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 5s, timeout: 5s, retries: 5 }
+    networks: [app-network]
+
+  # ============================================
+  # QUEUE WORKER
+  # ============================================
+  queue:
+    build: { context: ., dockerfile: docker/app/Dockerfile, target: development }
+    command: php artisan queue:work --tries=3 --timeout=90
+    volumes: [".:/var/www/html"]
+    environment: *app-env
+    depends_on: [app1]
+    networks: [app-network]
+
+  # ============================================
+  # FRONTEND
+  # ============================================
+  frontend:
+    build: ./frontend
+    ports: ["3000:3000"]
+    volumes: ["./frontend:/app", "/app/node_modules"]
+    depends_on: [lb]
+    networks: [app-network]
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
