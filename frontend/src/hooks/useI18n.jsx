@@ -2,64 +2,76 @@ import { createContext, useContext, useMemo, useState, useCallback } from 'react
 
 const messages = {
   "en": {
-    "appName": "Scale Platform",
-    "appTagline": "L4 LB + SSE",
+    "appName": "Load Balancer",
+    "appTagline": "Horizontal scaling L4 + SSE",
     "logout": "Log out",
+    "loading": "Loading…",
     "language": "Language",
     "login": {
-      "title": "Scale Platform",
-      "subtitle": "L4 LB + SSE",
+      "title": "Load Balancer",
+      "subtitle": "Horizontal scaling L4 + SSE",
       "email": "Email",
       "password": "Password",
       "submit": "Sign in",
       "loading": "Signing in…",
-      "error": "Invalid credentials"
+      "error": "Invalid credentials",
+      "hint": "admin@platform.test / password"
     },
     "nav": {
       "home": "Dashboard",
-      "lb": "Load balancer"
+      "lb": "Load Balancer"
     },
-    "dashboard": "Dashboard"
+    "dashboard": {
+      "title": "Dashboard"
+    }
   },
   "es": {
-    "appName": "Plataforma Escalable",
-    "appTagline": "LB L4 + SSE",
+    "appName": "Load Balancer",
+    "appTagline": "Escalado horizontal L4 + SSE",
     "logout": "Cerrar sesión",
+    "loading": "Cargando…",
     "language": "Idioma",
     "login": {
-      "title": "Plataforma Escalable",
-      "subtitle": "LB L4 + SSE",
+      "title": "Load Balancer",
+      "subtitle": "Escalado horizontal L4 + SSE",
       "email": "Email",
       "password": "Contraseña",
       "submit": "Iniciar sesión",
       "loading": "Entrando…",
-      "error": "Credenciales inválidas"
+      "error": "Credenciales inválidas",
+      "hint": "admin@platform.test / password"
     },
     "nav": {
       "home": "Dashboard",
-      "lb": "Load balancer"
+      "lb": "Load Balancer"
     },
-    "dashboard": "Dashboard"
+    "dashboard": {
+      "title": "Dashboard"
+    }
   },
   "pt": {
-    "appName": "Plataforma Escalável",
-    "appTagline": "LB L4 + SSE",
+    "appName": "Load Balancer",
+    "appTagline": "Escala horizontal L4 + SSE",
     "logout": "Sair",
+    "loading": "Carregando…",
     "language": "Idioma",
     "login": {
-      "title": "Plataforma Escalável",
-      "subtitle": "LB L4 + SSE",
+      "title": "Load Balancer",
+      "subtitle": "Escala horizontal L4 + SSE",
       "email": "Email",
       "password": "Senha",
       "submit": "Entrar",
       "loading": "Entrando…",
-      "error": "Credenciais inválidas"
+      "error": "Credenciais inválidas",
+      "hint": "admin@platform.test / password"
     },
     "nav": {
       "home": "Dashboard",
-      "lb": "Load balancer"
+      "lb": "Load Balancer"
     },
-    "dashboard": "Dashboard"
+    "dashboard": {
+      "title": "Dashboard"
+    }
   }
 }
 
@@ -86,7 +98,7 @@ export function I18nProvider({ children }) {
     for (const p of parts) cur = cur?.[p]
     return typeof cur === 'string' ? cur : key
   }, [locale])
-  const value = useMemo(() => ({ locale, setLocale, t, messages: messages[locale] }), [locale, setLocale, t])
+  const value = useMemo(() => ({ locale, setLocale, t }), [locale, setLocale, t])
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }
 
